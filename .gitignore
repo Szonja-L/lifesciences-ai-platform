@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Data and outputs (download scripts are committed, data is not)
+data/raw/
+data/samples/*
+!data/samples/.gitkeep
+pipelines/**/results/
+pipelines/**/.snakemake/
+uploads/
+*.vcf
+*.vcf.gz
+*.pdf
+!tests/fixtures/**/*.pdf
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
