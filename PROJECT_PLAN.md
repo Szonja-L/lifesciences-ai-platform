@@ -463,6 +463,7 @@ If a feature overruns, cut optional scope (section 17). Never cut tests, provena
 4. Review the proposed design before allowing broad changes. Inspect the diff and run the tests after each change.
 5. Keep `PROJECT_PLAN.md`, `README.md`, `CHANGELOG.md` and `docs/decisions/` current.
 6. Never ask for a whole month in one prompt.
+7. Operating model (added 2026-11-13): `PROGRESS.md` carries the state between sessions; `prompts/phase-N.md` holds one paste-ready block per task; `prompts/session-start.md` and `prompts/session-end.md` open and close every session; `prompts/plan-phase.md` expands a phase into task blocks at its start. One task per session, Sonnet 5.5 by default, Opus 5.5 where a task block says so, no subagents. The phase prompts below remain the reference text.
 
 ### 12.1 Master Project Instruction (also the content of `CLAUDE.md`)
 
@@ -682,7 +683,7 @@ Evidence checklist: public repo, green CI, README and setup, architecture diagra
 
 | Workstream | Status | Next milestone |
 |---|---|---|
-| Programme setup | Plan written 2026-11-12 | git init, GitHub repo, Phase 0 |
+| Programme setup | Plan written 2026-11-12; git initialised and prompt kit added 2026-11-13 | GitHub remote, Phase 0 task 0.1 |
 | Mentor agreement | Not started | Week 1 conversation, notes in docs/evidence |
 | Intake MVP (Track A slice 1) | Not started | v0.1 end of week 4 |
 | Document intelligence (Track B) | Not started | v0.2 end of week 8, mentor review 1 |
