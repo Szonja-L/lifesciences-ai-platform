@@ -18,11 +18,11 @@ Phase 0: repository and environment setup (plan weeks 1-2). Task blocks: `prompt
 | Prompt kit, PROGRESS.md | 2026-11-13 | c2809ca | |
 | 0.1 Python project skeleton, ADR 0002 | 2026-11-25 | 9babe88 | |
 | 0.2 FastAPI app, health endpoint, settings, ADR 0003 | 2026-11-25 | ab8cce4 | |
-| 0.3 GitHub Actions CI, README badge | 2026-11-25 | pending push | |
+| 0.3 GitHub Actions CI, README badge | 2026-11-25 | 49497cd | |
 
 ## Next task
 
-0.4. Phase gate: CI green, tag v0.0.1. 0.3 is only fully done once the first Actions run is green; Szonja pastes the result next session.
+0.4. Phase gate: CI green, tag v0.0.1. CI run for 0.3 confirmed green by Szonja on 2026-11-25.
 
 ## Open questions for Szonja
 
@@ -30,7 +30,7 @@ Phase 0: repository and environment setup (plan weeks 1-2). Task blocks: `prompt
 
 ## Blockers
 
-None. Waiting on: first GitHub Actions run of `ci.yml` (Szonja pushes, then reports green or red).
+None.
 
 ## Usage notes
 
