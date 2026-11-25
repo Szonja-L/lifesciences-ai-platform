@@ -1,0 +1,3 @@
+This is a plain-text file, not a CSV manifest.
+It exists only to trigger UNSUPPORTED_FILE_TYPE in tests.
+All content is synthetic.

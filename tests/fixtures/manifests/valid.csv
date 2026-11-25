@@ -1,0 +1,6 @@
+sample_id,client_sample_label,organism,reference_genome,sample_type,assay,variant_file,dna_conc_ng_per_ul,collection_date
+S-0001,ctrl_rep1,Homo sapiens,GRCh38,blood,WES,S-0001.vcf.gz,42.5,2026-09-14
+S-0002,ctrl_rep2,Homo sapiens,GRCh38,saliva,WES,S-0002.vcf.gz,18.0,2026-09-14
+S-0003,,Homo sapiens,GRCh38,dna_extract,WGS,S-0003.vcf,120,2026-09-15
+S-0004,mouse-a,Mus musculus,GRCm39,tissue,targeted_panel,S-0004.vcf.gz,0.5,2026-08-30
+S-0005,mouse-b,Mus musculus,GRCm39,cell_line,WGS,S-0005.vcf.gz,500,2026-08-30

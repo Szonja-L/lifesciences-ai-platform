@@ -1,0 +1,3 @@
+# Test fixtures are compared byte for byte (SHA-256 in upload tests): keep LF on every platform.
+tests/fixtures/** text eol=lf
+tests/fixtures/**/*.csv text eol=lf

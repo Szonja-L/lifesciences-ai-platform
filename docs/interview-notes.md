@@ -4,6 +4,14 @@ One block per task, appended by Claude at the end of each session (prompts/sessi
 
 ## Phase 0
 
+### 0.4 Track A discovery spec and manifest fixtures (2026-11-25)
+
+- Built: an illustrative requirements spec for a sequencing-service intake workflow (persona, process, manifest schema v1, 14 stable issue codes, KPIs, simulated baseline) and five synthetic fixtures whose expected issues are written down row by row.
+- Why: the spec answers "what is a valid manifest" before any code exists, so the Phase 1 validator, upload endpoint and tests all build against one written contract instead of against each other.
+- Trade-off: a small 9-column schema exercises every issue code but is simpler than a real provider's manifest; I kept it small and labelled the whole process as an unvalidated hypothesis.
+- Would break otherwise: without `.gitattributes`, Windows checks the fixtures out with CRLF and CI with LF, so the same file would hash differently and duplicate-upload tests would pass on one machine and fail on the other.
+- Interviewer question: "How do you claim business value without a real client?" I define a simulated manual baseline with every assumption stated and shown at a low and a high value, and label it simulated wherever it appears. I report measured detection rates on planted errors, never invented savings.
+
 ### 0.3 Continuous integration (2026-11-25)
 
 - Built: one GitHub Actions workflow that installs the package and runs `make check` (ruff, strict mypy, pytest) on Ubuntu with Python 3.12, for pushes to `main` and every pull request, plus a README badge.

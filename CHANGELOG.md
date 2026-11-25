@@ -11,3 +11,4 @@ All notable changes to this project are recorded here. Format follows [Keep a Ch
 - ADR 0002: Python tooling.
 - FastAPI app (`lifesciences_platform.api.main`) with `GET /health`, typed `Settings` (pydantic-settings, secrets as `SecretStr`), `.env.example`, unit and integration tests, ADR 0003, README start instructions (task 0.2).
 - GitHub Actions CI (`.github/workflows/ci.yml`): `make check` (ruff, strict mypy, pytest) on Ubuntu, Python 3.12, pip cache, for pushes to `main` and pull requests; README badge (task 0.3).
+- Track A discovery spec (`docs/architecture/track-a-spec.md`, illustrative): persona, process, manifest schema v1, file rules, issue codes, KPIs, simulated baseline; five synthetic manifest fixtures with expected issues; `evaluation/README.md`; `.gitattributes` keeping fixtures LF (task 0.4).

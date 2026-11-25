@@ -1,0 +1,4 @@
+sample_id,client_sample_label,organism,reference_genome,sample_type,variant_file,dna_conc_ng_per_ul
+S-0011,batch_a1,Homo sapiens,GRCh38,blood,S-0011.vcf.gz,35.2
+S-0012,batch_a2,Homo sapiens,GRCh38,blood,S-0012.vcf.gz,27.9
+S-0013,batch_a3,Mus musculus,GRCm39,tissue,S-0013.vcf.gz,64.0

@@ -1,0 +1,13 @@
+sample_id,client_sample_label,organism,reference_genome,sample_type,assay,variant_file,dna_conc_ng_per_ul,collection_date,notes
+S-01,lbl_01,Homo sapiens,GRCh38,blood,WES,S-01.vcf.gz,40,2026-09-01,synthetic
+S-0102,lbl_02,Homo sapien,GRCh38,blood,WES,S-0102.vcf.gz,40,2026-09-01,synthetic
+S-0103,lbl_03,Homo sapiens,GRCh38,blood,,S-0103.vcf.gz,40,2026-09-01,synthetic
+S-0104,lbl_04,Homo sapiens,GRCh38,blood,WES,S-0104.vcf.gz,abc,2026-09-01,synthetic
+S-0105,lbl_05,Homo sapiens,GRCh38,blood,WES,S-0105.vcf.gz,900,2026-09-01,synthetic
+S-0106,lbl_06,Homo sapiens,GRCh38,blood,WES,S-0106.vcf.gz,40,2026-13-01,synthetic
+S-0107,lbl_07,Homo sapiens,GRCh38,blood,WES,S-0107.vcf.gz,40,2099-01-01,synthetic
+S-0108,lbl_08,Mus musculus,GRCh38,tissue,WGS,S-0108.vcf.gz,40,2026-09-01,synthetic
+S-0109,lbl_09,Homo sapiens,GRCh38,blood,WES,S-0109.bam,40,2026-09-01,synthetic
+S-0102,lbl_10,Homo sapiens,GRCh38,blood,WES,S-0110.vcf.gz,40,2026-09-01,synthetic
+S-0111,ctrl rep#11,Homo sapiens,GRCh38,blood,WES,S-0111.vcf.gz,40,2026-09-01,synthetic
+S-0112,lbl_12,Homo sapiens,GRCh38,plasma,WES,S-0112.vcf.gz,40,2026-09-01,synthetic

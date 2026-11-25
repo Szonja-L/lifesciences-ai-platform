@@ -21,7 +21,7 @@ Produces:
 - SQLAlchemy 2 (typed, `Mapped[]`) models in `src/lifesciences_platform/workflows/models.py`: `Submission` (id, created_at, filename, content_hash, size_bytes, status, metadata JSON) and `ValidationResult` (id, submission_id, rule_set_version, severity, code, message, row, column, created_at).
 - Alembic set up under `migrations/`, first migration generated and applied.
 - `common/db.py` with engine and session factory from settings.
-- Tests: a DB test that creates and reads a submission against the compose database, skipped with a clear message when the database is not reachable. ADR 0003 on SQLAlchemy + Alembic and the status column design.
+- Tests: a DB test that creates and reads a submission against the compose database, skipped with a clear message when the database is not reachable. ADR 0004 on SQLAlchemy + Alembic and the status column design.
 - README: `docker compose up -d`, `alembic upgrade head`.
 
 Acceptance: compose up, migration applied, `make check` green including the DB test locally. CI stays green (DB test skipped or run with a service container; say which and why).
