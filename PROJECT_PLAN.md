@@ -175,8 +175,8 @@ lifesciences-ai-platform/
 │   ├── evidence/           # monthly evidence packages, mentor notes
 │   └── case-studies/
 ├── apps/streamlit_app/
-├── api/main.py
 ├── src/lifesciences_platform/
+│   ├── api/                # FastAPI app (moved here from a root api/ folder, ADR 0003)
 │   ├── common/             # config, logging, storage, validation, provenance, llm
 │   ├── documents/          # Track B
 │   ├── workflows/          # Track A state machine, worker, approvals, audit

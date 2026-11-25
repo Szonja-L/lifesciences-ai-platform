@@ -9,3 +9,4 @@ All notable changes to this project are recorded here. Format follows [Keep a Ch
 - Python 3.12 project skeleton: `pyproject.toml` (hatchling build, `src` layout), package `lifesciences_platform` with `common` subpackage, smoke test.
 - Tooling: ruff (lint and format), mypy (strict, two relaxations), pytest; `Makefile` targets `install`, `lint`, `typecheck`, `test`, `check`.
 - ADR 0002: Python tooling.
+- FastAPI app (`lifesciences_platform.api.main`) with `GET /health`, typed `Settings` (pydantic-settings, secrets as `SecretStr`), `.env.example`, unit and integration tests, ADR 0003, README start instructions (task 0.2).

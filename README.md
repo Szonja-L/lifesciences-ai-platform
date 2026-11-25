@@ -12,7 +12,7 @@ The full plan and roadmap are in [PROJECT_PLAN.md](PROJECT_PLAN.md). The running
 
 ## Status
 
-Plan written and committed 2026-11-13. Prompt kit in place. Next: Phase 0 task 0.1 (see PROGRESS.md and prompts/phase-0.md).
+Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. Next: see PROGRESS.md.
 
 ## Running locally
 
@@ -35,5 +35,16 @@ source .venv/bin/activate
 make install
 make check
 ```
+
+## Starting the API
+
+Copy the settings template once (all values are optional at this stage), then start the server from the activated virtual environment:
+
+```powershell
+Copy-Item .env.example .env
+python -m uvicorn lifesciences_platform.api.main:app --reload
+```
+
+Open <http://127.0.0.1:8000/health>; it returns `{"status":"ok","version":"0.0.1"}`. Interactive docs are at <http://127.0.0.1:8000/docs>. If port 8000 is taken, add `--port 8011` (or any free port). Settings are described in `.env.example`; `.env` is git-ignored and must never be committed.
 
 Individual targets: `make lint`, `make typecheck`, `make test`. Tool choices are explained in [docs/decisions/0002-python-tooling.md](docs/decisions/0002-python-tooling.md).
