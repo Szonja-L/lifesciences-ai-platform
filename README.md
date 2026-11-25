@@ -16,4 +16,24 @@ Plan written and committed 2026-11-13. Prompt kit in place. Next: Phase 0 task 0
 
 ## Running locally
 
-Not yet available. This section is filled in during Phase 0 and Phase 1.
+Requirements: Python 3.12 and GNU Make. On Windows, Make was installed with `winget install ezwinports.make --source winget` (open a new terminal afterwards so `make` is on the PATH).
+
+Windows (PowerShell), as run on 2026-11-25:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+make install   # editable install plus ruff, mypy, pytest
+make check     # lint, type-check, tests
+```
+
+Linux or macOS:
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+make install
+make check
+```
+
+Individual targets: `make lint`, `make typecheck`, `make test`. Tool choices are explained in [docs/decisions/0002-python-tooling.md](docs/decisions/0002-python-tooling.md).

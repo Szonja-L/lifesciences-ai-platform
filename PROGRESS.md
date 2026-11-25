@@ -8,22 +8,23 @@ Phase 0: repository and environment setup (plan weeks 1-2). Task blocks: `prompt
 
 ## Current task
 
-0.1 Python project skeleton. Not started.
+0.2 FastAPI app, health endpoint, settings. Not started.
 
 ## Done
 
 | Task | Date | Commit | Tag |
 |---|---|---|---|
 | Plan, CLAUDE.md, ADR 0001 | 2026-11-13 | 8310bf7 | |
-| Prompt kit, PROGRESS.md | 2026-11-13 | | |
+| Prompt kit, PROGRESS.md | 2026-11-13 | c2809ca | |
+| 0.1 Python project skeleton, ADR 0002 | 2026-11-25 | (fill in) | |
 
 ## Next task
 
-0.1, then 0.2, 0.3, 0.4. Phase gate: CI green, tag v0.0.1.
+0.2, then 0.3, 0.4. Phase gate: CI green, tag v0.0.1.
 
 ## Open questions for Szonja
 
-- GitHub remote not yet added (see prompts/README.md, step 0).
+- GitHub remote `origin` is set (github.com/Szonja-L/lifesciences-ai-platform); commits from c2809ca onward are not pushed yet.
 - Mentor conversation (plan section 3): date not yet booked.
 
 ## Blockers
@@ -33,3 +34,6 @@ None.
 ## Usage notes
 
 Default model Sonnet 5.5. Record here when a task needed Opus 5.5 and why.
+
+- 0.1 ran on Opus 5.5: task block names Opus because it sets the conventions every later task follows.
+- Environment: venv + pip (uv not installed); GNU Make 4.4.1 installed via winget on 2026-11-25. Open a new terminal before using `make`.
