@@ -1,5 +1,7 @@
 # Life Sciences AI and Workflow Automation Platform
 
+[![CI](https://github.com/Szonja-L/lifesciences-ai-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Szonja-L/lifesciences-ai-platform/actions/workflows/ci.yml)
+
 Portfolio programme, started November 2026. One platform, three tracks:
 
 - **Track A.** Genomics service-provider workflow: submission intake, validation, QC, pipeline execution, draft report, human approval, audit trail.
@@ -46,5 +48,7 @@ python -m uvicorn lifesciences_platform.api.main:app --reload
 ```
 
 Open <http://127.0.0.1:8000/health>; it returns `{"status":"ok","version":"0.0.1"}`. Interactive docs are at <http://127.0.0.1:8000/docs>. If port 8000 is taken, add `--port 8011` (or any free port). Settings are described in `.env.example`; `.env` is git-ignored and must never be committed.
+
+CI (GitHub Actions, `.github/workflows/ci.yml`) runs `make check` on Ubuntu with Python 3.12 for every push to `main` and every pull request: ruff lint and format check, strict mypy and pytest.
 
 Individual targets: `make lint`, `make typecheck`, `make test`. Tool choices are explained in [docs/decisions/0002-python-tooling.md](docs/decisions/0002-python-tooling.md).

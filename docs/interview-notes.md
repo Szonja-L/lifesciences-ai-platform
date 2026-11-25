@@ -4,6 +4,14 @@ One block per task, appended by Claude at the end of each session (prompts/sessi
 
 ## Phase 0
 
+### 0.3 Continuous integration (2026-11-25)
+
+- Built: one GitHub Actions workflow that installs the package and runs `make check` (ruff, strict mypy, pytest) on Ubuntu with Python 3.12, for pushes to `main` and every pull request, plus a README badge.
+- Why: the workflow calls the same Makefile target I run locally, so a green local check and a green CI run mean the same thing, and the CI file stays about 30 lines.
+- Trade-off: one combined step gives a less granular view than three separate steps, in exchange for no drift between local and CI commands.
+- Would break otherwise: if CI listed the tool commands itself, adding a check to the Makefile (say a Snakemake dry run) would pass locally but never run in CI.
+- Interviewer question: "How do you keep CI cheap and safe?" Read-only token permissions, no secrets, pip cache keyed on `pyproject.toml`, a 15-minute timeout and cancellation of superseded runs. Nothing in CI can publish or deploy.
+
 ### 0.2 FastAPI app, health endpoint, settings (2026-11-25)
 
 - Built: a FastAPI app with `GET /health` (status + package version), a typed `Settings` class read from environment variables, `.env.example`, 11 new tests, ADR 0003.
