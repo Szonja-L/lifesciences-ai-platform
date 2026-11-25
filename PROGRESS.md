@@ -17,7 +17,7 @@ Phase 0: repository and environment setup (plan weeks 1-2). Task blocks: `prompt
 | Plan, CLAUDE.md, ADR 0001 | 2026-11-13 | 8310bf7 | |
 | Prompt kit, PROGRESS.md | 2026-11-13 | c2809ca | |
 | 0.1 Python project skeleton, ADR 0002 | 2026-11-25 | 9babe88 | |
-| 0.2 FastAPI app, health endpoint, settings, ADR 0003 | 2026-11-25 | (fill in after commit) | |
+| 0.2 FastAPI app, health endpoint, settings, ADR 0003 | 2026-11-25 | ab8cce4 | |
 
 ## Next task
 
