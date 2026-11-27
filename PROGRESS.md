@@ -23,7 +23,7 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 | 1.1 Postgres (compose), models, Alembic migration 0001, CI service container, ADR 0004 | 2026-11-25 | 90a465e | |
 | 1.2 `POST /submissions`, upload storage, ADR 0005 | 2026-11-27 | b1c17c1 | |
 | 1.3 Validation engine, rule set v1, ADR 0006 | 2026-11-27 | cec510c | |
-| 1.4 Validation on upload, `GET /submissions` and `/{id}`, column cap, ADR 0007 | 2026-11-27 | not committed yet | |
+| 1.4 Validation on upload, `GET /submissions` and `/{id}`, column cap, ADR 0007 | 2026-11-27 | 1904da8 | |
 
 ## Next task
 
