@@ -8,7 +8,7 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 
 ## Current task
 
-1.2 File upload endpoint. Not started.
+1.3 Validation engine. Not started.
 
 ## Done
 
@@ -21,10 +21,11 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 | 0.3 GitHub Actions CI, README badge | 2026-11-25 | 49497cd | |
 | 0.4 Track A spec, five manifest fixtures, evaluation/ README | 2026-11-25 | fec1c7d | v0.0.1 |
 | 1.1 Postgres (compose), models, Alembic migration 0001, CI service container, ADR 0004 | 2026-11-25 | 90a465e | |
+| 1.2 `POST /submissions`, upload storage, ADR 0005 | 2026-11-27 | not committed yet | |
 
 ## Next task
 
-1.2 (Sonnet). Needs Docker Desktop running and `docker compose up -d` before the DB tests run (otherwise they skip).
+1.3 (Sonnet). Pure module, no database or API changes. A 0-byte file reaches it as an accepted submission and must produce `EMPTY_FILE` (decided in 1.2, ADR 0005).
 
 ## Open questions for Szonja
 
@@ -43,6 +44,7 @@ Default model Sonnet 5.5. Record here when a task needed Opus 5.5 and why.
 - 0.3 ran on Sonnet 5.5 as the block says.
 - 0.4 ran on Opus 5.5: the block names Opus because the whole of Track A rests on this spec.
 - 1.1 ran on Opus 5.5: the block names Opus because the data model persists for the whole programme.
+- 1.2 ran on Sonnet 5.5 as the block says.
 - DATABASE_URL must use `127.0.0.1`, not `localhost`: on this machine `localhost` tries IPv6 first and stalls (container is IPv4-bound).
 - Python start-up on this machine is slow (~8 s per command, likely antivirus scanning `.venv`); not a code issue.
 - Docker Desktop stopped once mid-session on 2026-11-25; restart it if DB tests start skipping.

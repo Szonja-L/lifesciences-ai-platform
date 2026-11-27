@@ -1,5 +1,7 @@
 """Settings load from the environment, defaults work, bad values are rejected."""
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -11,6 +13,8 @@ SETTING_VARS = [
     "DATABASE_URL",
     "ANTHROPIC_API_KEY",
     "LLM_MONTHLY_BUDGET_EUR",
+    "MAX_UPLOAD_BYTES",
+    "UPLOAD_DIR",
 ]
 
 
@@ -33,6 +37,13 @@ def test_defaults() -> None:
     assert settings.database_url is None
     assert settings.anthropic_api_key is None
     assert settings.llm_monthly_budget_eur is None
+    assert settings.max_upload_bytes == 5 * 1024 * 1024
+    assert settings.upload_dir == Path.home() / ".lifesciences-platform" / "uploads"
+
+
+def test_upload_dir_expands_home(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("UPLOAD_DIR", "~/manifests")
+    assert make_settings().upload_dir == Path.home() / "manifests"
 
 
 def test_values_come_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -74,6 +85,8 @@ def test_secrets_are_not_printed(monkeypatch: pytest.MonkeyPatch) -> None:
         ("LOG_LEVEL", "LOUD"),
         ("LLM_MONTHLY_BUDGET_EUR", "-1"),
         ("LLM_MONTHLY_BUDGET_EUR", "abc"),
+        ("MAX_UPLOAD_BYTES", "0"),
+        ("UPLOAD_DIR", "uploads"),
     ],
 )
 def test_invalid_values_are_rejected(

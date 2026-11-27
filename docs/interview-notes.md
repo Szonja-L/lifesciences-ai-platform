@@ -2,7 +2,15 @@
 
 One block per task, appended by Claude at the end of each session (prompts/session-end.md step 5) and edited by Szonja. Format: task id and title, what was built, why this design, one trade-off, one thing that would break if done differently, one likely interviewer question with a two-sentence answer. Week 26 CV bullets and the LinkedIn write-up are drafted from this file.
 
-## Phase 0
+## Phase 1
+
+### 1.2 File upload endpoint (2026-11-27)
+
+- Built: `POST /submissions` with extension, content-type and size checks, SHA-256 hashing, hash-named storage outside the repository, a `SUBMITTED` row, clear 4xx/503 errors, ADR 0005.
+- Why: intake rules are plain Python that raises typed errors and the route only maps them to HTTP, so the rules are testable without a server and reusable by another front end.
+- Trade-off: files go to local disk, which is simple to run and inspect but ties the service to one machine until storage moves to an object store.
+- Would break otherwise: checking "does this hash exist?" before inserting lets two simultaneous uploads both pass; relying on the unique constraint at flush time cannot.
+- Interviewer question: "How do you keep the database and the file system consistent?" I flush the row, write the file with an atomic rename, then commit, so a failed write rolls the row back. The worst case is a stray file named by its own hash, which does no harm.
 
 ### 1.1 PostgreSQL, data models, first migration (2026-11-25)
 
@@ -11,6 +19,8 @@ One block per task, appended by Claude at the end of each session (prompts/sessi
 - Trade-off: status is a VARCHAR with a named check constraint instead of a native Postgres ENUM; each new phase widens it with a small migration, in exchange for changes that are plain SQL and reversible.
 - Would break otherwise: without the constraint naming convention, Postgres invents constraint names and a later migration that widens the status check could not reliably find the constraint to drop.
 - Interviewer question: "How do you know your migrations match your models?" A test runs `alembic check` against the migrated database, which fails if a model changed without a migration. CI sets REQUIRE_DB=1 so that test cannot be silently skipped.
+
+## Phase 0
 
 ### 0.4 Track A discovery spec and manifest fixtures (2026-11-25)
 

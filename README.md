@@ -14,7 +14,7 @@ The full plan and roadmap are in [PROJECT_PLAN.md](PROJECT_PLAN.md). The running
 
 ## Status
 
-Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. PostgreSQL, the submission data model and the first migration added in task 1.1. Next: see PROGRESS.md.
+Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. PostgreSQL, the submission data model and the first migration added in task 1.1. File upload (`POST /submissions`) added in task 1.2. Next: see PROGRESS.md.
 
 ## Running locally
 
@@ -63,6 +63,35 @@ python -m uvicorn lifesciences_platform.api.main:app --reload
 ```
 
 Open <http://127.0.0.1:8000/health>; it returns `{"status":"ok","version":"0.0.1"}`. Interactive docs are at <http://127.0.0.1:8000/docs>. If port 8000 is taken, add `--port 8011` (or any free port). Settings are described in `.env.example`; `.env` is git-ignored and must never be committed.
+
+## Uploading a manifest
+
+`POST /submissions` takes one `.csv` file and four form fields. With the database up and the API running, in PowerShell (use `curl.exe`; plain `curl` is a PowerShell alias for a different command):
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/submissions `
+  -F "file=@tests/fixtures/manifests/valid.csv;type=text/csv" `
+  -F "client_id=C-001" `
+  -F "project_name=Synthetic exome batch A" `
+  -F "requested_analysis=variant_annotation" `
+  -F "contact_email=lab-contact@example.org"
+```
+
+On Linux or macOS use `curl` and `\` line endings. Keep `;type=text/csv`: curl does not recognise `.csv` and would send a type the API rejects.
+
+A successful upload returns 201 with the submission id, status `SUBMITTED`, filename, SHA-256 hash, size and time. The contents are not validated yet (tasks 1.3 and 1.4).
+
+| Response | Meaning |
+|---|---|
+| 409 `DUPLICATE_FILE` | These exact bytes were already submitted; the response names that submission |
+| 413 `FILE_TOO_LARGE` | Over `MAX_UPLOAD_BYTES` (default 5 MB) |
+| 415 `UNSUPPORTED_FILE_TYPE` | Not a `.csv` file, or not sent as `text/csv` or `application/vnd.ms-excel` |
+| 422 | A file or form field is missing or invalid |
+| 503 | The database or the upload folder is unavailable |
+
+Files are stored as `<hash>.csv` in `UPLOAD_DIR`, by default `~/.lifesciences-platform/uploads`. Why: [docs/decisions/0005-upload-storage.md](docs/decisions/0005-upload-storage.md).
+
+## Checks and CI
 
 CI (GitHub Actions, `.github/workflows/ci.yml`) runs `make check` on Ubuntu with Python 3.12 for every push to `main` and every pull request: ruff lint and format check, strict mypy and pytest. A PostgreSQL 16 service container is started first and `alembic upgrade head` is applied, so the database tests run in CI too.
 

@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from lifesciences_platform import __version__
+from lifesciences_platform.api import submissions
 
 
 class HealthResponse(BaseModel):
@@ -21,6 +22,9 @@ def create_app() -> FastAPI:
     def health() -> HealthResponse:
         # Liveness only. Deliberately returns no settings, paths or secrets.
         return HealthResponse(status="ok", version=__version__)
+
+    application.include_router(submissions.router)
+    submissions.register_error_handlers(application)
 
     return application
 

@@ -77,7 +77,9 @@ Recorded by the system, never entered by the client: submission id, upload time,
 |---|---|---|
 | Wrong file type (not `.csv`, or wrong content type) | Upload | HTTP 4xx, no submission created (`UNSUPPORTED_FILE_TYPE`) |
 | File larger than the size limit | Upload | HTTP 413, no submission created (`FILE_TOO_LARGE`) |
-| Same file uploaded twice (same content hash) | Upload | HTTP 409, points to the existing submission |
+| Same file uploaded twice (same content hash) | Upload | HTTP 409, points to the existing submission (`DUPLICATE_FILE`) |
+| File name missing, over 255 characters or containing control characters | Upload | HTTP 422, no submission created (`INVALID_FILENAME`) |
+| Database or upload folder unavailable | Upload | HTTP 503, no submission created (`DATABASE_UNAVAILABLE`, `STORAGE_UNAVAILABLE`) |
 | Empty file, header only, unreadable CSV, too many rows | Validation, file level | `VALIDATION_FAILED`, one file-level issue, row checks skipped |
 | Required column missing | Validation, header level | `VALIDATION_FAILED`; present columns are still checked |
 | Bad value in a row | Validation, row level | `VALIDATION_FAILED` with row and column of every bad cell |

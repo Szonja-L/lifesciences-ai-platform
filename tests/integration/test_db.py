@@ -1,16 +1,11 @@
 """Tests against the real PostgreSQL database from docker-compose.yml.
 
-Each test runs inside a transaction that is rolled back, so local data is never changed.
-When the database is not reachable the tests are skipped with instructions, unless
-REQUIRE_DB=1 (set in CI), which turns the skip into a failure.
+The `engine` and `session` fixtures (rollback, skip rules) are in tests/conftest.py.
 """
 
 import hashlib
-import os
 import uuid
-from collections.abc import Iterator
 from pathlib import Path
-from typing import NoReturn
 
 import pytest
 from alembic import command
@@ -18,11 +13,9 @@ from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, select, text
-from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from lifesciences_platform.common.config import Settings
-from lifesciences_platform.common.db import DatabaseNotConfiguredError, create_db_engine
 from lifesciences_platform.workflows.models import (
     Severity,
     Submission,
@@ -33,44 +26,6 @@ from lifesciences_platform.workflows.models import (
 pytestmark = pytest.mark.db
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-HOW_TO_START = (
-    "Start it with `docker compose up -d` and `alembic upgrade head` (README, 'Database')."
-)
-
-
-def _unavailable(reason: str) -> NoReturn:
-    if os.environ.get("REQUIRE_DB") == "1":
-        pytest.fail(f"REQUIRE_DB=1 but {reason}")
-    pytest.skip(f"{reason}. {HOW_TO_START}")
-
-
-@pytest.fixture(scope="module")
-def engine() -> Iterator[Engine]:
-    try:
-        db_engine = create_db_engine(Settings())
-    except DatabaseNotConfiguredError as error:
-        _unavailable(str(error))
-    try:
-        with db_engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-    except OperationalError:
-        db_engine.dispose()
-        _unavailable("PostgreSQL is not reachable at DATABASE_URL")
-    yield db_engine
-    db_engine.dispose()
-
-
-@pytest.fixture
-def session(engine: Engine) -> Iterator[Session]:
-    """A session whose work, including commits, is rolled back at the end of the test."""
-    with engine.connect() as connection:
-        transaction = connection.begin()
-        db_session = Session(bind=connection, join_transaction_mode="create_savepoint")
-        try:
-            yield db_session
-        finally:
-            db_session.close()
-            transaction.rollback()
 
 
 def make_submission(content: bytes = b"sample_id\nS-0001\n") -> Submission:
