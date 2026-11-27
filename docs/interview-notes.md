@@ -4,6 +4,14 @@ One block per task, appended by Claude at the end of each session (prompts/sessi
 
 ## Phase 1
 
+### 1.3 Validation engine (2026-11-27)
+
+- Built: rule set `v1` as data, a pure `validate_manifest` that returns typed issues with stable codes, row and column, tests on all five fixtures, ADR 0006.
+- Why: what is valid (rules) is separate from how to check (engine), and the validation date is passed in, so the same file and rule version always give the same result.
+- Trade-off: rules are Python dataclasses rather than YAML, so mypy checks them and no loader is needed, but a rule change is a code change.
+- Would break otherwise: converting before checking the format would accept `nan` or `1e2` as a DNA concentration, because Python's number parser allows them.
+- Interviewer question: "How do you handle a malformed file?" File-level faults return one clear issue and stop, while header and cell faults are all collected so the client can fix everything in one pass. A file that cannot be opened raises instead, so a system fault is never blamed on the client's data.
+
 ### 1.2 File upload endpoint (2026-11-27)
 
 - Built: `POST /submissions` with extension, content-type and size checks, SHA-256 hashing, hash-named storage outside the repository, a `SUBMITTED` row, clear 4xx/503 errors, ADR 0005.

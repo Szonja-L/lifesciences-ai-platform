@@ -32,6 +32,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lifesciences_platform.common.db import Base
 
+# Defined with the validation engine, which must not depend on the database (ADR 0006).
+# The `as Severity` marks it as re-exported from here too.
+from lifesciences_platform.common.validation.models import Severity as Severity
+
 
 class SubmissionStatus(StrEnum):
     """Phase 1 states (spec section 3). Later phases add states with a migration."""
@@ -39,13 +43,6 @@ class SubmissionStatus(StrEnum):
     SUBMITTED = "SUBMITTED"
     VALIDATED = "VALIDATED"
     VALIDATION_FAILED = "VALIDATION_FAILED"
-
-
-class Severity(StrEnum):
-    """Issue severity (spec section 9). Only errors block validation."""
-
-    ERROR = "error"
-    WARNING = "warning"
 
 
 def _in_list_sql(column: str, values: list[str]) -> str:

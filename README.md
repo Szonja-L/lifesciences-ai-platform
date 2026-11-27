@@ -14,7 +14,7 @@ The full plan and roadmap are in [PROJECT_PLAN.md](PROJECT_PLAN.md). The running
 
 ## Status
 
-Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. PostgreSQL, the submission data model and the first migration added in task 1.1. File upload (`POST /submissions`) added in task 1.2. Next: see PROGRESS.md.
+Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. PostgreSQL, the submission data model and the first migration added in task 1.1. File upload (`POST /submissions`) added in task 1.2. Manifest validation engine added in task 1.3 (not yet run on upload). Next: see PROGRESS.md.
 
 ## Running locally
 
@@ -79,7 +79,7 @@ curl.exe -X POST http://127.0.0.1:8000/submissions `
 
 On Linux or macOS use `curl` and `\` line endings. Keep `;type=text/csv`: curl does not recognise `.csv` and would send a type the API rejects.
 
-A successful upload returns 201 with the submission id, status `SUBMITTED`, filename, SHA-256 hash, size and time. The contents are not validated yet (tasks 1.3 and 1.4).
+A successful upload returns 201 with the submission id, status `SUBMITTED`, filename, SHA-256 hash, size and time. The upload does not validate the contents yet (task 1.4); the rules and the engine are in `src/lifesciences_platform/common/validation/`.
 
 | Response | Meaning |
 |---|---|

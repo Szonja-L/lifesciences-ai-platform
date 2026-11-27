@@ -96,13 +96,14 @@ Recorded by the system, never entered by the client: submission id, upload time,
 | Maximum size | 5 MB (a setting, `MAX_UPLOAD_BYTES`) | `FILE_TOO_LARGE` |
 | Encoding | UTF-8; a leading UTF-8 byte-order mark is accepted (Excel adds one) | `MALFORMED_CSV` |
 | Delimiter | comma | `MALFORMED_CSV` if rows have a different field count from the header |
-| Header | first line; column names matched exactly after trimming whitespace; column order is free | see section 9 |
+| Readable CSV | quoted fields are closed and followed by a comma or line end; no NUL bytes | `MALFORMED_CSV` |
+| Header | first line; column names matched exactly after trimming whitespace; column order is free; no name used twice | see section 9; a repeated name is `MALFORMED_CSV` |
 | Data rows | at least 1, at most 1,000 (a setting, `MAX_MANIFEST_ROWS`) | `NO_DATA_ROWS`, `TOO_MANY_ROWS` |
-| Blank lines | fully blank lines are ignored, not counted as rows | none |
+| Blank lines | lines that are blank or hold only empty cells (such as `,,,,`) are ignored, not counted as rows; a file with nothing else is empty | none, or `EMPTY_FILE` |
 
 ## 8. Manifest schema (rule set v1)
 
-All values are trimmed of surrounding whitespace before checking. Enum values are case-sensitive. An empty cell counts as missing.
+All values are trimmed of surrounding whitespace before checking. Enum values are case-sensitive. An empty cell counts as missing. Text values may hold printable characters only. Uniqueness of `sample_id` is checked among values that match the pattern.
 
 | Column | Type | Required | Allowed values / rule | Example |
 |---|---|---|---|---|
@@ -133,7 +134,7 @@ A UTF-8 comma-separated `.csv` of at most 5 MB, with a header containing all eig
 
 Each issue has: `severity` (`error` or `warning`), `code` (stable string, never renamed once released), `message` (plain English, says what was found and what is expected), `row` and `column`.
 
-`row` is the **file line number** (header = line 1, so the first data row is row 2), so a user can find it in any editor. `row` is empty for file- and header-level issues; `column` is empty for file-level issues.
+`row` is the **file line number** (header = line 1, so the first data row is row 2), so a user can find it in any editor; for a quoted value that spans lines it is the line where the row starts. `row` is empty for file- and header-level issues; `column` is empty for file-level issues and for a header cell with no name.
 
 A submission is `VALIDATED` when it has zero `error` issues. Warnings never block.
 
@@ -141,12 +142,12 @@ A submission is `VALIDATED` when it has zero `error` issues. Warnings never bloc
 |---|---|---|---|
 | `UNSUPPORTED_FILE_TYPE` | error | file | Extension or content type not allowed |
 | `FILE_TOO_LARGE` | error | file | Size over `MAX_UPLOAD_BYTES` (upload only) |
-| `EMPTY_FILE` | error | file | File has 0 bytes, or only whitespace |
-| `MALFORMED_CSV` | error | file | Not valid UTF-8, or a row's field count differs from the header's |
+| `EMPTY_FILE` | error | file | File has 0 bytes, or holds no values (only whitespace and commas) |
+| `MALFORMED_CSV` | error | file | Not valid UTF-8, a NUL byte, broken quoting, a repeated column name, or a row's field count differs from the header's |
 | `NO_DATA_ROWS` | error | file | Header present, no data rows |
 | `TOO_MANY_ROWS` | error | file | More than `MAX_MANIFEST_ROWS` data rows; row checks skipped |
 | `MISSING_COLUMN` | error | header | A required column is absent (one issue per column) |
-| `UNKNOWN_COLUMN` | warning | header | A column not in the schema (one issue per column) |
+| `UNKNOWN_COLUMN` | warning | header | A column not in the schema, or with no name (one issue per column) |
 | `MISSING_VALUE` | error | cell | A required cell is empty |
 | `INVALID_TYPE` | error | cell | A value cannot be read as its type (not a number, not a real date) |
 | `INVALID_VALUE` | error | cell | Wrong pattern, not an allowed enum value, or a disallowed character or extension |

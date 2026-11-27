@@ -8,7 +8,7 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 
 ## Current task
 
-1.3 Validation engine. Not started.
+1.4 Persist results and read endpoints. Not started.
 
 ## Done
 
@@ -22,10 +22,14 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 | 0.4 Track A spec, five manifest fixtures, evaluation/ README | 2026-11-25 | fec1c7d | v0.0.1 |
 | 1.1 Postgres (compose), models, Alembic migration 0001, CI service container, ADR 0004 | 2026-11-25 | 90a465e | |
 | 1.2 `POST /submissions`, upload storage, ADR 0005 | 2026-11-27 | b1c17c1 | |
+| 1.3 Validation engine, rule set v1, ADR 0006 | 2026-11-27 | pending | |
 
 ## Next task
 
-1.3 (Sonnet). Pure module, no database or API changes. A 0-byte file reaches it as an accepted submission and must produce `EMPTY_FILE` (decided in 1.2, ADR 0005).
+1.4 (Sonnet). Call `validate_manifest(path, RULE_SET_V1, today=..., max_rows=...)` after storing the file and save `rule_set.version` with the results. Also in scope there:
+- Add the `MAX_MANIFEST_ROWS` setting to config and `.env.example` (the engine takes it as a parameter).
+- Decide a cap on header columns or stored issues before inserting them (ADR 0006, limitations).
+- If the engine raises, the submission stays `SUBMITTED` and the error is logged (spec section 6).
 
 ## Open questions for Szonja
 
@@ -45,6 +49,7 @@ Default model Sonnet 5.5. Record here when a task needed Opus 5.5 and why.
 - 0.4 ran on Opus 5.5: the block names Opus because the whole of Track A rests on this spec.
 - 1.1 ran on Opus 5.5: the block names Opus because the data model persists for the whole programme.
 - 1.2 ran on Sonnet 5.5 as the block says.
+- 1.3 ran on Sonnet 5.5 as the block says.
 - DATABASE_URL must use `127.0.0.1`, not `localhost`: on this machine `localhost` tries IPv6 first and stalls (container is IPv4-bound).
 - Python start-up on this machine is slow (~8 s per command, likely antivirus scanning `.venv`); not a code issue.
 - Docker Desktop stopped once mid-session on 2026-11-25; restart it if DB tests start skipping.
