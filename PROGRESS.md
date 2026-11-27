@@ -22,7 +22,7 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 | 0.4 Track A spec, five manifest fixtures, evaluation/ README | 2026-11-25 | fec1c7d | v0.0.1 |
 | 1.1 Postgres (compose), models, Alembic migration 0001, CI service container, ADR 0004 | 2026-11-25 | 90a465e | |
 | 1.2 `POST /submissions`, upload storage, ADR 0005 | 2026-11-27 | b1c17c1 | |
-| 1.3 Validation engine, rule set v1, ADR 0006 | 2026-11-27 | pending | |
+| 1.3 Validation engine, rule set v1, ADR 0006 | 2026-11-27 | cec510c | |
 
 ## Next task
 
