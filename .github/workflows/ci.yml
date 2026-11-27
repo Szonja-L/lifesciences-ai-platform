@@ -1,7 +1,8 @@
 name: CI
 
 # Runs the same command as a local `make check`: ruff (lint + format check),
-# strict mypy and pytest. No secrets, no deployment.
+# strict mypy and pytest, against a throwaway Postgres service container after
+# `alembic upgrade head`. No secrets, no deployment.
 on:
   push:
     branches: [main]
@@ -19,6 +20,31 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    # Throwaway PostgreSQL, same major version as docker-compose.yml, so CI really runs
+    # the migration and the database tests (ADR 0004). The credentials exist only inside
+    # this job's container and are not secrets.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: lifesciences
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d lifesciences"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://ci:ci@127.0.0.1:5432/lifesciences
+      # Fail instead of skip if the database is unreachable, so a broken service
+      # container cannot turn the DB tests into a silent green run.
+      REQUIRE_DB: "1"
+
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -32,6 +58,9 @@ jobs:
 
       - name: Install the package and dev tools
         run: make install
+
+      - name: Apply database migrations
+        run: python -m alembic upgrade head
 
       - name: Lint, type-check and test
         run: make check

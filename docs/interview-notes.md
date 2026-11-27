@@ -4,6 +4,14 @@ One block per task, appended by Claude at the end of each session (prompts/sessi
 
 ## Phase 0
 
+### 1.1 PostgreSQL, data models, first migration (2026-11-25)
+
+- Built: Postgres 16 in Docker Compose, typed SQLAlchemy 2 models for submissions and validation results, Alembic migration 0001, database tests that roll back, a Postgres service container in CI, ADR 0004.
+- Why: the database enforces the rules that must never break (unique file hash, allowed status, valid row numbers), so a bug in API code cannot store a duplicate upload or an unknown state.
+- Trade-off: status is a VARCHAR with a named check constraint instead of a native Postgres ENUM; each new phase widens it with a small migration, in exchange for changes that are plain SQL and reversible.
+- Would break otherwise: without the constraint naming convention, Postgres invents constraint names and a later migration that widens the status check could not reliably find the constraint to drop.
+- Interviewer question: "How do you know your migrations match your models?" A test runs `alembic check` against the migrated database, which fails if a model changed without a migration. CI sets REQUIRE_DB=1 so that test cannot be silently skipped.
+
 ### 0.4 Track A discovery spec and manifest fixtures (2026-11-25)
 
 - Built: an illustrative requirements spec for a sequencing-service intake workflow (persona, process, manifest schema v1, 14 stable issue codes, KPIs, simulated baseline) and five synthetic fixtures whose expected issues are written down row by row.
