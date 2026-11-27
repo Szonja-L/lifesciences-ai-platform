@@ -33,6 +33,9 @@ from lifesciences_platform.common.validation.rules import (
 )
 
 DEFAULT_MAX_MANIFEST_ROWS = 1000  # track-a-spec.md section 7
+# Spec section 7. Without a limit, a header of mostly commas would give one warning per
+# comma: millions of issues from a file within the upload size limit.
+MAX_HEADER_COLUMNS = 50
 MAX_SHOWN_VALUE_LENGTH = 60
 
 # Checked before conversion: Decimal() also accepts "nan", "inf", "1e2" and "1_000",
@@ -81,6 +84,11 @@ def _read_table(path: Path, max_rows: int) -> tuple[list[str], list[_Record]]:
     if not records:
         raise _FileError(IssueCode.EMPTY_FILE, "The file contains no values.")
     header, rows = records[0].cells, records[1:]
+    if len(header) > MAX_HEADER_COLUMNS:
+        raise _FileError(
+            IssueCode.TOO_MANY_COLUMNS,
+            f"The header has {len(header)} columns; the limit is {MAX_HEADER_COLUMNS}.",
+        )
 
     for record in rows:
         if len(record.cells) != len(header):

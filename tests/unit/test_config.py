@@ -15,6 +15,7 @@ SETTING_VARS = [
     "LLM_MONTHLY_BUDGET_EUR",
     "MAX_UPLOAD_BYTES",
     "UPLOAD_DIR",
+    "MAX_MANIFEST_ROWS",
 ]
 
 
@@ -39,6 +40,7 @@ def test_defaults() -> None:
     assert settings.llm_monthly_budget_eur is None
     assert settings.max_upload_bytes == 5 * 1024 * 1024
     assert settings.upload_dir == Path.home() / ".lifesciences-platform" / "uploads"
+    assert settings.max_manifest_rows == 1000
 
 
 def test_upload_dir_expands_home(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -86,6 +88,7 @@ def test_secrets_are_not_printed(monkeypatch: pytest.MonkeyPatch) -> None:
         ("LLM_MONTHLY_BUDGET_EUR", "-1"),
         ("LLM_MONTHLY_BUDGET_EUR", "abc"),
         ("MAX_UPLOAD_BYTES", "0"),
+        ("MAX_MANIFEST_ROWS", "0"),
         ("UPLOAD_DIR", "uploads"),
     ],
 )

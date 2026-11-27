@@ -80,7 +80,7 @@ Recorded by the system, never entered by the client: submission id, upload time,
 | Same file uploaded twice (same content hash) | Upload | HTTP 409, points to the existing submission (`DUPLICATE_FILE`) |
 | File name missing, over 255 characters or containing control characters | Upload | HTTP 422, no submission created (`INVALID_FILENAME`) |
 | Database or upload folder unavailable | Upload | HTTP 503, no submission created (`DATABASE_UNAVAILABLE`, `STORAGE_UNAVAILABLE`) |
-| Empty file, header only, unreadable CSV, too many rows | Validation, file level | `VALIDATION_FAILED`, one file-level issue, row checks skipped |
+| Empty file, header only, unreadable CSV, too many rows or columns | Validation, file level | `VALIDATION_FAILED`, one file-level issue, row checks skipped |
 | Required column missing | Validation, header level | `VALIDATION_FAILED`; present columns are still checked |
 | Bad value in a row | Validation, row level | `VALIDATION_FAILED` with row and column of every bad cell |
 | Unknown extra column | Validation, header level | Warning only; submission can still be `VALIDATED` |
@@ -99,6 +99,7 @@ Recorded by the system, never entered by the client: submission id, upload time,
 | Readable CSV | quoted fields are closed and followed by a comma or line end; no NUL bytes | `MALFORMED_CSV` |
 | Header | first line; column names matched exactly after trimming whitespace; column order is free; no name used twice | see section 9; a repeated name is `MALFORMED_CSV` |
 | Data rows | at least 1, at most 1,000 (a setting, `MAX_MANIFEST_ROWS`) | `NO_DATA_ROWS`, `TOO_MANY_ROWS` |
+| Header columns | at most 50, counting unnamed ones | `TOO_MANY_COLUMNS` |
 | Blank lines | lines that are blank or hold only empty cells (such as `,,,,`) are ignored, not counted as rows; a file with nothing else is empty | none, or `EMPTY_FILE` |
 
 ## 8. Manifest schema (rule set v1)
@@ -128,7 +129,7 @@ The consistency check runs only when both cells are individually valid. An inval
 
 ### 8.2 A valid manifest, in one sentence
 
-A UTF-8 comma-separated `.csv` of at most 5 MB, with a header containing all eight required columns, between 1 and 1,000 data rows, every required cell filled and every cell matching the rules above, unique `sample_id` values, and a reference genome that matches each organism. Unknown extra columns are allowed and produce a warning.
+A UTF-8 comma-separated `.csv` of at most 5 MB, with a header of at most 50 columns containing all eight required ones, between 1 and 1,000 data rows, every required cell filled and every cell matching the rules above, unique `sample_id` values, and a reference genome that matches each organism. Unknown extra columns are allowed and produce a warning.
 
 ## 9. Validation issues and codes
 
@@ -146,6 +147,7 @@ A submission is `VALIDATED` when it has zero `error` issues. Warnings never bloc
 | `MALFORMED_CSV` | error | file | Not valid UTF-8, a NUL byte, broken quoting, a repeated column name, or a row's field count differs from the header's |
 | `NO_DATA_ROWS` | error | file | Header present, no data rows |
 | `TOO_MANY_ROWS` | error | file | More than `MAX_MANIFEST_ROWS` data rows; row checks skipped |
+| `TOO_MANY_COLUMNS` | error | file | More than 50 header columns; all other checks skipped |
 | `MISSING_COLUMN` | error | header | A required column is absent (one issue per column) |
 | `UNKNOWN_COLUMN` | warning | header | A column not in the schema, or with no name (one issue per column) |
 | `MISSING_VALUE` | error | cell | A required cell is empty |

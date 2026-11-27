@@ -4,6 +4,14 @@ One block per task, appended by Claude at the end of each session (prompts/sessi
 
 ## Phase 1
 
+### 1.4 Persist results and read endpoints (2026-11-27)
+
+- Built: validation on upload with stored issues and rule set version, a paginated list and a detail endpoint, a 50-column input limit, ADR 0007.
+- Why: the upload commits as `SUBMITTED` first and the results go in a second transaction, so a crash leaves an honest state and never partial results or a false "valid".
+- Trade-off: validation runs inside the request, which needs no queue or worker, but a submission stuck at `SUBMITTED` cannot yet be re-run.
+- Would break otherwise: with one transaction, an engine crash would roll the submission away, and the client's upload would leave no trace for staff to follow up.
+- Interviewer question: "Why return 201 when validation crashed?" The submission was accepted and stored, so a 5xx would invite a retry that is refused as a duplicate. The status in the body says it is not validated, and the log names the submission without quoting client data.
+
 ### 1.3 Validation engine (2026-11-27)
 
 - Built: rule set `v1` as data, a pure `validate_manifest` that returns typed issues with stable codes, row and column, tests on all five fixtures, ADR 0006.

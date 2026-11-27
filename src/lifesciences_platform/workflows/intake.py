@@ -3,7 +3,7 @@
 Spec: docs/architecture/track-a-spec.md sections 4, 6 and 7. Storage design: ADR 0005.
 This module knows nothing about HTTP. It raises `IntakeError` subclasses and the API
 layer turns them into responses. It does not look inside the file: an empty or broken
-CSV is accepted here and rejected by validation (tasks 1.3 and 1.4).
+CSV is accepted here and rejected by validation (`workflows.validate_submission`).
 """
 
 import hashlib
@@ -122,10 +122,15 @@ def read_limited(stream: BinaryIO, max_bytes: int) -> bytes:
     return bytes(content)
 
 
+def stored_path(upload_dir: Path, content_hash: str) -> Path:
+    """Where the file with this hash is kept (ADR 0005)."""
+    return upload_dir / f"{content_hash}{STORED_EXTENSION}"
+
+
 def store_file(upload_dir: Path, content_hash: str, content: bytes) -> Path:
     """Write `<hash>.csv` so that it is either complete or absent, never half written."""
     upload_dir.mkdir(parents=True, exist_ok=True)
-    target = upload_dir / f"{content_hash}{STORED_EXTENSION}"
+    target = stored_path(upload_dir, content_hash)
     with tempfile.NamedTemporaryFile(dir=upload_dir, suffix=".tmp", delete=False) as handle:
         temporary = Path(handle.name)
     try:

@@ -39,7 +39,7 @@ An uploaded manifest must be checked against the rules in the Track A spec (sect
 - Changing a rule means changing code. In exchange, mypy checks the rule set and no loader or file format is needed.
 - The rule kinds are a closed list; a new kind needs engine code.
 - The whole file is read into memory, which the 5 MB upload limit bounds.
-- The number of header columns is not limited. A file made mostly of commas in the header could produce a very large number of `UNKNOWN_COLUMN` warnings. Task 1.4 stores issues and should decide on a cap first.
+- The header is limited to 50 columns (`TOO_MANY_COLUMNS`, added in task 1.4, see ADR 0007), so a header of commas cannot produce millions of warnings.
 - Messages quote client values. The reports built in task 1.5 must escape them in HTML and guard against spreadsheet formulas in CSV.
 
 ## Dependencies added

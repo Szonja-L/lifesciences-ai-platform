@@ -61,7 +61,7 @@ Expected: rejected at upload with `UNSUPPORTED_FILE_TYPE` (HTTP 4xx, no submissi
 
 ## Not covered by a fixture
 
-`FILE_TOO_LARGE`, `MALFORMED_CSV`, `NO_DATA_ROWS` and `TOO_MANY_ROWS` are defined in the spec but have no file here; tests generate those inputs in memory (a header-only string, a non-UTF-8 byte string, 1,001 generated rows), which keeps large or binary files out of git.
+`FILE_TOO_LARGE`, `MALFORMED_CSV`, `NO_DATA_ROWS`, `TOO_MANY_ROWS` and `TOO_MANY_COLUMNS` are defined in the spec but have no file here; tests generate those inputs in memory (a header-only string, a non-UTF-8 byte string, 1,001 generated rows, a header of commas), which keeps large or binary files out of git.
 
 ## Rules for editing
 

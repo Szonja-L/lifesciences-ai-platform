@@ -6,24 +6,20 @@ File contents are unique per test, so a file uploaded by hand to the local datab
 
 import hashlib
 import uuid
-from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
-from sqlalchemy import Connection, delete, func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from lifesciences_platform.api.dependencies import get_session
-from lifesciences_platform.api.main import create_app
 from lifesciences_platform.common.config import Settings, get_settings
 from lifesciences_platform.workflows.models import Submission
 
 pytestmark = pytest.mark.db
 
-MAX_BYTES = 1024
 FORM = {
     "client_id": "C-001",
     "project_name": "Synthetic exome batch A",
@@ -34,34 +30,6 @@ FORM = {
 
 def unique_content() -> bytes:
     return f"sample_id\n{uuid.uuid4().hex}\n".encode()
-
-
-@pytest.fixture
-def upload_dir(tmp_path: Path) -> Path:
-    return tmp_path / "uploads"
-
-
-@pytest.fixture
-def app(db_connection: Connection, upload_dir: Path) -> FastAPI:
-    application = create_app()
-    settings = Settings(upload_dir=upload_dir, max_upload_bytes=MAX_BYTES)
-
-    def session_in_test_transaction() -> Iterator[Session]:
-        with Session(
-            bind=db_connection,
-            join_transaction_mode="create_savepoint",
-            expire_on_commit=False,
-        ) as db_session:
-            yield db_session
-
-    application.dependency_overrides[get_session] = session_in_test_transaction
-    application.dependency_overrides[get_settings] = lambda: settings
-    return application
-
-
-@pytest.fixture
-def client(app: FastAPI) -> TestClient:
-    return TestClient(app)
 
 
 def upload(
@@ -103,7 +71,7 @@ def test_valid_upload_creates_row_and_file(
 
     assert response.status_code == 201, response.text
     body = response.json()
-    assert body["status"] == "SUBMITTED"
+    assert body["status"] == "VALIDATION_FAILED"  # this content lacks the other columns
     assert body["filename"] == "valid.csv"
     assert body["content_hash"] == digest
     assert body["size_bytes"] == len(content)
@@ -111,10 +79,10 @@ def test_valid_upload_creates_row_and_file(
     stored = session.get(Submission, uuid.UUID(body["id"]))
     assert stored is not None
     assert stored.submission_metadata == FORM
-    assert stored.rule_set_version is None  # not validated yet
+    assert stored.rule_set_version == "v1"
 
 
-def test_zero_byte_file_is_accepted_for_validation_to_judge(
+def test_zero_byte_file_is_accepted_and_fails_validation(
     client: TestClient, session: Session
 ) -> None:
     # Every zero-byte file has the same hash, so remove any row left by manual testing.
@@ -127,7 +95,9 @@ def test_zero_byte_file_is_accepted_for_validation_to_judge(
 
     assert response.status_code == 201, response.text
     assert response.json()["size_bytes"] == 0
-    assert response.json()["status"] == "SUBMITTED"
+    assert response.json()["status"] == "VALIDATION_FAILED"
+    issues = client.get(f"/submissions/{response.json()['id']}").json()["issues"]
+    assert [issue["code"] for issue in issues] == ["EMPTY_FILE"]
 
 
 def test_duplicate_file_is_409_and_points_to_the_first(
@@ -145,14 +115,16 @@ def test_duplicate_file_is_409_and_points_to_the_first(
     assert rows_with_content(session, content) == 1
 
 
-def test_oversize_file_is_413(client: TestClient, session: Session, upload_dir: Path) -> None:
-    content = unique_content() + b"x" * MAX_BYTES
+def test_oversize_file_is_413(
+    client: TestClient, session: Session, upload_dir: Path, settings: Settings
+) -> None:
+    content = unique_content() + b"x" * settings.max_upload_bytes
 
     response = upload(client, content)
 
     assert response.status_code == 413
     assert response.json()["detail"]["code"] == "FILE_TOO_LARGE"
-    assert str(MAX_BYTES) in response.json()["detail"]["message"]
+    assert str(settings.max_upload_bytes) in response.json()["detail"]["message"]
     assert_nothing_created(session, upload_dir, content)
 
 

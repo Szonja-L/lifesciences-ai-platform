@@ -160,6 +160,18 @@ def test_row_limit_can_be_set(tmp_path: Path) -> None:
     ]
 
 
+def test_column_limit_is_inclusive_and_gives_one_issue(tmp_path: Path) -> None:
+    extra = 50 - len(RULE_SET_V1.columns)
+
+    at_limit = validate(tmp_path, manifest(row() + ",x" * extra, header=HEADER + "," * extra))
+    assert summary(at_limit) == [(IssueCode.UNKNOWN_COLUMN, None, None)] * extra
+
+    # 100,000 unnamed columns would otherwise be 100,000 warnings.
+    for count in (extra + 1, 100_000):
+        content = manifest(row() + ",x" * count, header=HEADER + "," * count)
+        assert summary(validate(tmp_path, content)) == [(IssueCode.TOO_MANY_COLUMNS, None, None)]
+
+
 def test_extension_check_ignores_case(tmp_path: Path) -> None:
     assert validate(tmp_path, manifest(row()), name="M.CSV") == []
 

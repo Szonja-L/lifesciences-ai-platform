@@ -43,3 +43,9 @@ def test_unreachable_database_is_503_without_connection_details(tmp_path: Path) 
     assert "not-a-real-password" not in response.text
     assert "127.0.0.1" not in response.text
     assert list(tmp_path.iterdir()) == []
+
+    client = TestClient(app)
+    for url in ("/submissions", "/submissions/00000000-0000-0000-0000-000000000000"):
+        read = client.get(url)
+        assert read.status_code == 503, url
+        assert read.json()["detail"]["code"] == "DATABASE_UNAVAILABLE"

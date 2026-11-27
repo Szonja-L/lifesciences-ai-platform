@@ -11,6 +11,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from lifesciences_platform.common.validation.engine import DEFAULT_MAX_MANIFEST_ROWS
+
 AppEnv = Literal["dev", "test", "prod"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -44,6 +46,8 @@ class Settings(BaseSettings):
 
     max_upload_bytes: int = Field(default=DEFAULT_MAX_UPLOAD_BYTES, gt=0)
     upload_dir: Path = Field(default_factory=default_upload_dir)
+    # Most data rows a manifest may have (track-a-spec.md section 7).
+    max_manifest_rows: int = Field(default=DEFAULT_MAX_MANIFEST_ROWS, gt=0)
 
     @field_validator("upload_dir")
     @classmethod

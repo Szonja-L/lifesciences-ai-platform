@@ -1,30 +1,52 @@
-"""`POST /submissions`: the HTTP side of intake. The rules live in `workflows.intake`."""
+"""The `/submissions` routes: upload with validation, list and detail.
+
+The HTTP side only. The rules live in `workflows.intake` and `workflows.validate_submission`.
+"""
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from http import HTTPStatus
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, FastAPI, File, Form, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, ValidationError
+from sqlalchemy import func, select
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from lifesciences_platform.api.dependencies import get_session
+from lifesciences_platform.api.dependencies import get_session, get_validation_date
 from lifesciences_platform.common.config import Settings, get_settings
 from lifesciences_platform.common.db import DatabaseNotConfiguredError
+from lifesciences_platform.common.validation import Severity
 from lifesciences_platform.workflows import intake
-from lifesciences_platform.workflows.models import SubmissionStatus
+from lifesciences_platform.workflows.models import Submission, SubmissionStatus, ValidationResult
+from lifesciences_platform.workflows.validate_submission import validate_submission
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["submissions"])
 
+DEFAULT_PAGE_SIZE = 20
+MAX_PAGE_SIZE = 100
+MAX_PAGE_OFFSET = 2**31 - 1  # refuse numbers the database cannot take
 
-class SubmissionCreated(BaseModel):
+
+class SubmissionSummary(BaseModel):
+    """A submission without its metadata and issues."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
@@ -33,6 +55,30 @@ class SubmissionCreated(BaseModel):
     content_hash: str
     size_bytes: int
     created_at: datetime
+    rule_set_version: str | None  # null when the file has not been validated
+
+
+class SubmissionPage(BaseModel):
+    items: list[SubmissionSummary]
+    total: int  # all submissions, not only this page
+    limit: int
+    offset: int
+
+
+class Issue(BaseModel):
+    severity: Severity
+    code: str
+    message: str
+    row: int | None  # file line number; the header is line 1
+    column: str | None
+    rule_set_version: str
+
+
+class SubmissionDetail(SubmissionSummary):
+    updated_at: datetime
+    # Returned as stored: tightening an upload rule must not make old records unreadable.
+    metadata: dict[str, Any]
+    issues: list[Issue]
 
 
 class ErrorDetail(BaseModel):
@@ -53,15 +99,9 @@ STATUS_BY_ERROR: dict[type[intake.IntakeError], HTTPStatus] = {
     intake.StorageUnavailableError: HTTPStatus.SERVICE_UNAVAILABLE,
 }
 
-ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
-    int(code): {"model": ErrorResponse}
-    for code in (
-        HTTPStatus.CONFLICT,
-        HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-        HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-        HTTPStatus.SERVICE_UNAVAILABLE,
-    )
-}
+
+def _documented_errors(*codes: HTTPStatus) -> dict[int | str, dict[str, Any]]:
+    return {int(code): {"model": ErrorResponse} for code in codes}
 
 
 def metadata_from_form(
@@ -89,20 +129,32 @@ def metadata_from_form(
         ) from error
 
 
-# A plain `def`: FastAPI runs it in a worker thread, so file and database work
+# Plain `def` routes: FastAPI runs them in a worker thread, so file and database work
 # does not block the event loop.
 @router.post(
     "/submissions",
-    response_model=SubmissionCreated,
+    response_model=SubmissionSummary,
     status_code=HTTPStatus.CREATED,
-    responses=ERROR_RESPONSES,
+    summary="Upload and validate a manifest",
+    responses=_documented_errors(
+        HTTPStatus.CONFLICT,
+        HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+        HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+        HTTPStatus.SERVICE_UNAVAILABLE,
+    ),
 )
 def create_submission(
     file: Annotated[UploadFile, File(description="Sample manifest, one CSV file")],
     metadata: Annotated[intake.SubmissionMetadata, Depends(metadata_from_form)],
     session: Annotated[Session, Depends(get_session)],
     settings: Annotated[Settings, Depends(get_settings)],
-) -> SubmissionCreated:
+    today: Annotated[date, Depends(get_validation_date)],
+) -> SubmissionSummary:
+    """Store the file, then validate it.
+
+    201 means the file was accepted and recorded, not that it is valid: read `status`.
+    `SUBMITTED` in the response means validation could not be completed.
+    """
     filename = intake.clean_filename(file.filename)
     intake.check_file_type(filename, file.content_type)
     content = intake.read_limited(file.file, settings.max_upload_bytes)
@@ -113,7 +165,78 @@ def create_submission(
         metadata=metadata,
         upload_dir=settings.upload_dir,
     )
-    return SubmissionCreated.model_validate(submission)
+    # Copied before validating: after a rollback the row would have to be read again.
+    stored = SubmissionSummary.model_validate(submission)
+    outcome = validate_submission(
+        session,
+        submission,
+        path=intake.stored_path(settings.upload_dir, stored.content_hash),
+        today=today,
+        max_rows=settings.max_manifest_rows,
+    )
+    return stored.model_copy(
+        update={"status": outcome.status, "rule_set_version": outcome.rule_set_version}
+    )
+
+
+@router.get(
+    "/submissions",
+    response_model=SubmissionPage,
+    summary="List submissions, newest first",
+    responses=_documented_errors(HTTPStatus.SERVICE_UNAVAILABLE),
+)
+def list_submissions(
+    session: Annotated[Session, Depends(get_session)],
+    limit: Annotated[int, Query(ge=1, le=MAX_PAGE_SIZE)] = DEFAULT_PAGE_SIZE,
+    offset: Annotated[int, Query(ge=0, le=MAX_PAGE_OFFSET)] = 0,
+) -> SubmissionPage:
+    """One page of submissions. Metadata and issues are in the detail endpoint."""
+    total = session.scalar(select(func.count()).select_from(Submission)) or 0
+    rows = session.scalars(
+        select(Submission)
+        # The id breaks ties, so pages do not overlap when times are equal.
+        .order_by(Submission.created_at.desc(), Submission.id.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    items = [SubmissionSummary.model_validate(row) for row in rows]
+    return SubmissionPage(items=items, total=total, limit=limit, offset=offset)
+
+
+def _issue_from(result: ValidationResult) -> Issue:
+    return Issue(
+        severity=Severity(result.severity),
+        code=result.code,
+        message=result.message,
+        row=result.row_number,
+        column=result.column_name,
+        rule_set_version=result.rule_set_version,
+    )
+
+
+@router.get(
+    "/submissions/{submission_id}",
+    response_model=SubmissionDetail,
+    summary="One submission with its validation issues",
+    responses=_documented_errors(HTTPStatus.NOT_FOUND, HTTPStatus.SERVICE_UNAVAILABLE),
+)
+def get_submission(
+    submission_id: uuid.UUID,
+    session: Annotated[Session, Depends(get_session)],
+) -> SubmissionDetail:
+    """The record, the metadata sent with it and every issue in the order it was found."""
+    submission = session.get(
+        Submission, submission_id, options=[selectinload(Submission.validation_results)]
+    )
+    if submission is None:
+        detail = ErrorDetail(code="SUBMISSION_NOT_FOUND", message="No submission has this id.")
+        raise HTTPException(HTTPStatus.NOT_FOUND, detail.model_dump(exclude_none=True))
+    return SubmissionDetail(
+        **SubmissionSummary.model_validate(submission).model_dump(),
+        updated_at=submission.updated_at,
+        metadata=submission.submission_metadata,
+        issues=[_issue_from(result) for result in submission.validation_results],
+    )
 
 
 def _error_response(status: HTTPStatus, detail: ErrorDetail) -> JSONResponse:

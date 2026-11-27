@@ -14,7 +14,7 @@ The full plan and roadmap are in [PROJECT_PLAN.md](PROJECT_PLAN.md). The running
 
 ## Status
 
-Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. PostgreSQL, the submission data model and the first migration added in task 1.1. File upload (`POST /submissions`) added in task 1.2. Manifest validation engine added in task 1.3 (not yet run on upload). Next: see PROGRESS.md.
+Plan written and committed 2026-11-13. Prompt kit and Python skeleton in place; FastAPI app with `/health` and typed settings added in task 0.2. PostgreSQL, the submission data model and the first migration added in task 1.1. File upload (`POST /submissions`) added in task 1.2. Manifest validation engine added in task 1.3. Validation on upload, stored results and the two read endpoints added in task 1.4. Next: see PROGRESS.md.
 
 ## Running locally
 
@@ -79,7 +79,15 @@ curl.exe -X POST http://127.0.0.1:8000/submissions `
 
 On Linux or macOS use `curl` and `\` line endings. Keep `;type=text/csv`: curl does not recognise `.csv` and would send a type the API rejects.
 
-A successful upload returns 201 with the submission id, status `SUBMITTED`, filename, SHA-256 hash, size and time. The upload does not validate the contents yet (task 1.4); the rules and the engine are in `src/lifesciences_platform/common/validation/`.
+The file is validated as part of the upload. A 201 response means it was accepted and recorded, not that it is valid; read `status`:
+
+| `status` | Meaning |
+|---|---|
+| `VALIDATED` | No errors (there may be warnings) |
+| `VALIDATION_FAILED` | At least one error; read the issues |
+| `SUBMITTED` | Validation could not be completed; the reason is in the server log |
+
+The response also holds the submission id, filename, SHA-256 hash, size, time and rule set version. The rules are in `src/lifesciences_platform/common/validation/`.
 
 | Response | Meaning |
 |---|---|
@@ -90,6 +98,15 @@ A successful upload returns 201 with the submission id, status `SUBMITTED`, file
 | 503 | The database or the upload folder is unavailable |
 
 Files are stored as `<hash>.csv` in `UPLOAD_DIR`, by default `~/.lifesciences-platform/uploads`. Why: [docs/decisions/0005-upload-storage.md](docs/decisions/0005-upload-storage.md).
+
+## Reading results
+
+```powershell
+curl.exe "http://127.0.0.1:8000/submissions?limit=20&offset=0"
+curl.exe http://127.0.0.1:8000/submissions/<id>
+```
+
+The list is newest first, with `limit` from 1 to 100 (default 20), and returns `items`, `total`, `limit` and `offset`. One submission by id adds its metadata and every issue (`severity`, `code`, `message`, `row`, `column`, `rule_set_version`); an unknown id gives 404. All three endpoints are described at <http://127.0.0.1:8000/docs>. Design: [docs/decisions/0007-validation-on-upload-and-read-api.md](docs/decisions/0007-validation-on-upload-and-read-api.md).
 
 ## Checks and CI
 
