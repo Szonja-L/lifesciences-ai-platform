@@ -20,7 +20,7 @@ Phase 1: submission-intake MVP (plan weeks 3-4). Task blocks: `prompts/phase-1.m
 | 0.2 FastAPI app, health endpoint, settings, ADR 0003 | 2026-11-25 | ab8cce4 | |
 | 0.3 GitHub Actions CI, README badge | 2026-11-25 | 49497cd | |
 | 0.4 Track A spec, five manifest fixtures, evaluation/ README | 2026-11-25 | fec1c7d | v0.0.1 |
-| 1.1 Postgres (compose), models, Alembic migration 0001, CI service container, ADR 0004 | 2026-11-25 | (pending) | |
+| 1.1 Postgres (compose), models, Alembic migration 0001, CI service container, ADR 0004 | 2026-11-25 | 90a465e | |
 
 ## Next task
 
